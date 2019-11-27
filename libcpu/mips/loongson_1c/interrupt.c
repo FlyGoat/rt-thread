@@ -19,6 +19,7 @@
 #include <rthw.h>
 #include "ls1c.h"
 #include "ls1c_public.h"
+#include "../common/exception.h"
 
 
 #define MAX_INTR            (LS1C_NR_IRQS)
@@ -55,12 +56,7 @@ void rt_hw_interrupt_init(void)
     rt_int32_t i;
     rt_uint32_t c0_status = 0;
 
-    // ÉèÖÃĞ­´¦ÀíÆ÷0µÄ×´Ì¬¼Ä´æÆ÷SRµÄIM7-2£¬ÔÊĞíÖĞ¶Ï
-    c0_status = read_c0_status();
-    c0_status |= 0xFC00;
-    write_c0_status(c0_status);
-
-    // ÁúĞ¾1cµÄÖĞ¶Ï·ÖÎªÎå×é
+    // ï¿½ï¿½Ğ¾1cï¿½ï¿½ï¿½Ğ¶Ï·ï¿½Îªï¿½ï¿½ï¿½ï¿½
     for (i=0; i<5; i++)
     {
         /* disable */
@@ -132,19 +128,19 @@ rt_isr_handler_t rt_hw_interrupt_install(int vector, rt_isr_handler_t handler,
 
 
 /**
- * Ö´ĞĞÖĞ¶Ï´¦Àíº¯Êı
- * @IRQn ÖĞ¶ÏºÅ
+ * Ö´ï¿½ï¿½ï¿½Ğ¶Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @IRQn ï¿½Ğ¶Ïºï¿½
  */
 void ls1c_do_IRQ(int IRQn)
 {
     rt_isr_handler_t irq_func;
     void *param;
 
-    // ÕÒµ½ÖĞ¶Ï´¦Àíº¯Êı
+    // ï¿½Òµï¿½ï¿½Ğ¶Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     irq_func = irq_handle_table[IRQn].handler;
     param    = irq_handle_table[IRQn].param;
 
-    // Ö´ĞĞÖĞ¶Ï´¦Àíº¯Êı
+    // Ö´ï¿½ï¿½ï¿½Ğ¶Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     irq_func(IRQn, param);
     
 #ifdef RT_USING_INTERRUPT_INFO
@@ -155,70 +151,27 @@ void ls1c_do_IRQ(int IRQn)
 }
 
 
-void ls1c_irq_dispatch(int n)
+void rt_do_mips_cpu_irq(rt_uint32_t ip)
 {
-    rt_uint32_t intstatus, irq;
+    rt_uint32_t intstatus, irq, n;
 
+    if (ip = 7) {
+	    rt_hw_timer_handler();
+    } else {
+    n = ip - 2;
     /* Receive interrupt signal, compute the irq */
     intstatus = (ls1c_hw0_icregs+n)->int_isr & (ls1c_hw0_icregs+n)->int_en;
     if (0 == intstatus)
         return ;
 
-    // Ö´ĞĞÖĞ¶Ï´¦Àíº¯Êı
     irq = ls1c_ffs(intstatus) - 1;
-    ls1c_do_IRQ((n<<5) + irq);
+    ls1c_do_IRQ(n * 32 + irq);
 
     /* ack interrupt */
     (ls1c_hw0_icregs+n)->int_clr |= (1 << irq);
+    }
 
     return ;
-}
-
-
-void rt_interrupt_dispatch(void *ptreg)
-{
-    int irq;
-    void *param;
-    rt_isr_handler_t irq_func;
-    static rt_uint32_t status = 0;
-    rt_uint32_t c0_status;
-    rt_uint32_t c0_cause;
-    volatile rt_uint32_t cause_im;
-    volatile rt_uint32_t status_im;
-    rt_uint32_t pending_im;
-
-    /* check os timer */
-    c0_status = read_c0_status();
-    c0_cause = read_c0_cause();
-
-    cause_im = c0_cause & ST0_IM;
-    status_im = c0_status & ST0_IM;
-    pending_im = cause_im & status_im;
-
-    if (pending_im & CAUSEF_IP7)
-    {
-        rt_hw_timer_handler();
-    }
-    else if (pending_im & CAUSEF_IP2)
-    {
-        ls1c_irq_dispatch(0);
-    }
-    else if (pending_im & CAUSEF_IP3)
-    {
-        ls1c_irq_dispatch(1);
-    }
-    else if (pending_im & CAUSEF_IP4)
-    {
-        ls1c_irq_dispatch(2);
-    }
-    else if (pending_im & CAUSEF_IP5)
-    {
-        ls1c_irq_dispatch(3);
-    }
-    else if (pending_im & CAUSEF_IP6)
-    {
-        ls1c_irq_dispatch(4);
-    }
 }
 
 /*@}*/

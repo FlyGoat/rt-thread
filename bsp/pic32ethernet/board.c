@@ -120,7 +120,3 @@ void __ISR(_TIMER_1_VECTOR, ipl2) Timer1Handler(void)
 //    // update the period
 //    UpdateCoreTimer(CORE_TICK_RATE);
 //}
-
-
-void __ISR(_CORE_SOFTWARE_0_VECTOR, ipl1) CoreSW0Handler(void);
-

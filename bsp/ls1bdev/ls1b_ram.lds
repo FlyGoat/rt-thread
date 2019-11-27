@@ -25,6 +25,13 @@ SECTIONS
     {
         *(.start);
     }
+    . = ALIGN(0x1000);
+    .vec :
+    {
+	 __ebase_start = ABSOLUTE(.);
+	 *(.exc_vectors)
+	 __ebase_end = ABSOLUTE(.);
+    }
 
     . = ALIGN(4);
     .text : 

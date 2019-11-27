@@ -11,13 +11,13 @@
 #ifndef __DFS_H__
 #define __DFS_H__
 
+#include <rtthread.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <time.h>
-#include <rtthread.h>
 #include <rtdevice.h>
 
 #ifndef DFS_FILESYSTEMS_MAX

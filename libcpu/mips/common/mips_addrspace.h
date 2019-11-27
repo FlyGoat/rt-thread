@@ -19,7 +19,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2016Äê9ÔÂ12ÈÕ     Urey         the first version
+ * 2016ï¿½ï¿½9ï¿½ï¿½12ï¿½ï¿½     Urey         the first version
  */
 
 #ifndef _MIPS_ADDRSPACE_H_
@@ -108,11 +108,11 @@
  * Memory segments (32bit kernel mode addresses)
  * These are the traditional names used in the 32-bit universe.
  */
-//#define KUSEGBASE			0x00000000
-//#define KSEG0BASE			0x80000000
-//#define KSEG1BASE			0xa0000000
-//#define KSEG2BASE			0xc0000000
-//#define KSEG3BASE			0xe0000000
+#define KUSEGBASE			0x00000000
+#define KSEG0BASE			0x80000000
+#define KSEG1BASE			0xa0000000
+#define KSEG2BASE			0xc0000000
+#define KSEG3BASE			0xe0000000
 
 #define CKUSEG			0x00000000
 #define CKSEG0			0x80000000
@@ -147,14 +147,6 @@
  * Returns the uncached address of a sdram address
  */
 #ifndef __ASSEMBLY__
-#if defined(CONFIG_SOC_AU1X00) || defined(CONFIG_TB0229)
-/* We use a 36 bit physical address map here and
-   cannot access physical memory directly from core */
-#define UNCACHED_SDRAM(a) (((unsigned long)(a)) | 0x20000000)
-#else	/* !CONFIG_SOC_AU1X00 */
-#define UNCACHED_SDRAM(a) CKSEG1ADDR(a)
-#endif	/* CONFIG_SOC_AU1X00 */
-#endif	/* __ASSEMBLY__ */
 
 /*
  * The ultimate limited of the 64-bit MIPS architecture:  2 bits for selecting
@@ -162,46 +154,19 @@
  * R8000 implements most with its 48-bit physical address space.
  */
 #define TO_PHYS_MASK	_CONST64_(0x07ffffffffffffff)	/* 2^^59 - 1 */
-
-#ifndef CONFIG_CPU_R8000
-
-/*
- * The R8000 doesn't have the 32-bit compat spaces so we don't define them
- * in order to catch bugs in the source code.
- */
-
 #define COMPAT_K1BASE32		_CONST64_(0xffffffffa0000000)
 #define PHYS_TO_COMPATK1(x)	((x) | COMPAT_K1BASE32) /* 32-bit compat k1 */
 
-#endif
-
 #define KDM_TO_PHYS(x)		(_ACAST64_ (x) & TO_PHYS_MASK)
 #define PHYS_TO_K0(x)		(_ACAST64_ (x) | CAC_BASE)
+#endif
 
 
 #ifndef __ASSEMBLY__
-/*
- * Change virtual addresses to physical addresses and vv.
- * These are trivial on the 1:1 Linux/MIPS mapping
- */
-static inline phys_addr_t virt_to_phys(volatile void * address)
-{
-#ifndef CONFIG_64BIT
-	return CPHYSADDR(address);
-#else
-	return XPHYSADDR(address);
+#define REG8( addr )		  (*(volatile u8 *) (addr))
+#define REG16( addr )		  (*(volatile u16 *)(addr))
+#define REG32( addr )		  (*(volatile u32 *)(addr))
+#define REG64( addr )		  (*(volatile u64 *)(addr))
 #endif
-}
-
-static inline void * phys_to_virt(unsigned long address)
-{
-#ifndef CONFIG_64BIT
-	return (void *)KSEG0ADDR(address);
-#else
-	return (void *)CKSEG0ADDR(address);
-#endif
-}
-#endif
-
 
 #endif /* _MIPS_ADDRSPACE_H_ */

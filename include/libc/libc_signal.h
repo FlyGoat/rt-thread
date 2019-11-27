@@ -64,6 +64,7 @@ typedef struct siginfo siginfo_t;
                                message on an empty message queue. */
 
 #ifdef RT_USING_NEWLIB
+#include <pthread.h>
 #include <sys/signal.h>
 #endif
 

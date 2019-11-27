@@ -120,6 +120,8 @@ class Win32Spawn:
 def GenCconfigFile(env, BuildOptions):
     import rtconfig
 
+    print("genconfig")
+
     if rtconfig.PLATFORM == 'gcc':
         contents = ''
         if not os.path.isfile('cconfig.h'):
@@ -149,6 +151,8 @@ def PrepareBuilding(env, root_directory, has_libcpu=False, remove_components = [
     global Projects
     global Env
     global Rtt_Root
+
+    print("prep")
 
     # ===== Add option to SCons =====
     AddOption('--dist',
@@ -350,6 +354,7 @@ def PrepareBuilding(env, root_directory, has_libcpu=False, remove_components = [
         # found or something like that).
         rtconfig.POST_ACTION = ''
 
+    print("gen config before")
     # generate cconfig.h file
     GenCconfigFile(env, BuildOptions)
 

@@ -28,8 +28,8 @@ config BOARD_X1000_REALBOARD
     select RT_USING_USER_MAIN
     default y
 
-config RT_USING_HARD_FLOAT
+config RT_USING_FPU
     bool "Enable Hardware Float Unit"
-    default y
+    default n
 
 source "$BSP_DIR/drivers/Kconfig"

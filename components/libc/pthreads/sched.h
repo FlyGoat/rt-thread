@@ -10,7 +10,6 @@
 #ifndef __SCHED_H__
 #define __SCHED_H__
 
-#include <rtthread.h>
 #include <pthread.h>
 
 /* Thread scheduling policies */
@@ -36,5 +35,4 @@ int sched_setscheduler(pid_t pid, int policy);
 #ifdef __cplusplus
 }
 #endif
-
 #endif

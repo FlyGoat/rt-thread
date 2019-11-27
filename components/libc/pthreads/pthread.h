@@ -11,14 +11,16 @@
 #ifndef __PTHREAD_H__
 #define __PTHREAD_H__
 
-#include <rtthread.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <posix_types.h>
 #include <sched.h>
+
+#define RTLIBC_H__
+#include <rtdef.h>
+#undef RTLIBC_H__
 
 #define PTHREAD_KEY_MAX             8
 

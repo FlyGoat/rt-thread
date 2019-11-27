@@ -9,6 +9,7 @@
  */
 
 #include <pthread.h>
+#include "pthread_internal.h"
 
 int pthread_barrierattr_destroy(pthread_barrierattr_t *attr)
 {

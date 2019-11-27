@@ -7,10 +7,11 @@
  * Date           Author       Notes
  * 2017/10/15     bernard      the first version
  */
+
+#include <rtthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <rtthread.h>
 #include "libc.h"
 
 #define STDIO_DEVICE_NAME_MAX   32

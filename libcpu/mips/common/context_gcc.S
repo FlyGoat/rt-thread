@@ -15,9 +15,8 @@
 #define __ASSEMBLY__
 #endif
 
-#include "../common/mips_def.h"
-#include "../common/stackframe.h"
-#include "stackframe_fpu.h"
+#include "mips_regs.h"
+#include "stackframe.h"
 
     .section ".text", "ax"
     .set noreorder
@@ -28,23 +27,29 @@
     .globl rt_hw_interrupt_disable
 rt_hw_interrupt_disable:
     mfc0    v0, CP0_STATUS
-    and     v1, v0, 0xfffffffe
+    and     v1, v0, ~ST0_IE
     mtc0    v1, CP0_STATUS
+    ehb
     jr      ra
     nop
 
 /*
  * void rt_hw_interrupt_enable(rt_base_t level)
+ * Ignore the level, we have noting to do with it
  */
     .globl rt_hw_interrupt_enable
 rt_hw_interrupt_enable:
-    ori     a0, 0x00000800   
+    mfc0    a0, CP0_STATUS
+    li      t0, ~(ST0_ERL | ST0_EXL)
+    and     a0, a0, t0
+    ori     a0, ST0_IE
     mtc0    a0, CP0_STATUS
     ehb
-    mfc0    v0, CP0_CAUSE
-    ehb
-    or      v1, v0, 0x800000                 //EBASE + 0x200                                                                                                 
-    mtc0    v1, CP0_CAUSE
+    mfc0    a0, CP0_CAUSE
+#ifdef RT_CPU_USING_IV
+    ori     a0, CAUSEF_IV  /* EBASE + 0x200 */    
+#endif                                                                                             
+    mtc0    a0, CP0_CAUSE
     ehb
     jr      ra
     nop
@@ -58,12 +63,10 @@ rt_hw_interrupt_enable:
 rt_hw_context_switch:
     mtc0    ra, CP0_EPC
     SAVE_ALL
-    SAVE_FPU
 
     sw      sp, 0(a0)       /* store sp in preempted tasks TCB */
     lw      sp, 0(a1)       /* get new task stack pointer */
 
-    RESTORE_FPU
     RESTORE_ALL_AND_RET
 
 /*
@@ -73,8 +76,6 @@ rt_hw_context_switch:
     .globl rt_hw_context_switch_to
 rt_hw_context_switch_to:
     lw      sp, 0(a0)       /* get new task stack pointer */
-
-    RESTORE_FPU
     RESTORE_ALL_AND_RET
 
 /*
@@ -105,59 +106,56 @@ _reswitch:
  */
     .globl rt_interrupt_enter
     .globl rt_interrupt_leave
+    .globl rt_general_exc_dispatch
     .globl mips_irq_handle
 mips_irq_handle:
-    SAVE_ALL
-    SAVE_FPU
+	SAVE_ALL
 
-    mfc0    t0, CP0_CAUSE
-    and     t1, t0, 0xff
-	bnez	t1, spurious_interrupt		/* check exception */
-	nop
 
 	/* let k0 keep the current context sp */
-    move    k0, sp 
-    /* switch to kernel stack */
-    li      sp, SYSTEM_STACK
+	move    k0, sp 
+	/* switch to kernel stack */
+	li      sp, SYSTEM_STACK
 
-    jal     rt_interrupt_enter
-    nop
-    jal     rt_interrupt_dispatch
-    nop
-    jal     rt_interrupt_leave
-    nop
-
-    /* switch sp back to thread's context */
-    move    sp, k0
-
-    /*
-     * if rt_thread_switch_interrupt_flag set, jump to
-     * rt_hw_context_switch_interrupt_do and don't return
-     */
-    la      k0, rt_thread_switch_interrupt_flag
-    lw      k1, 0(k0)
-    beqz    k1, spurious_interrupt
-    nop
-    sw      zero, 0(k0)                     /* clear flag */
+	jal     rt_interrupt_enter
+	nop
+	/* Get Old SP from k0 as paremeter in a0 */
+	move	a0, k0
+	jal     rt_general_exc_dispatch
+	nop
+	jal     rt_interrupt_leave
 	nop
 
-    /*
-     * switch to the new thread
-     */
-    la      k0, rt_interrupt_from_thread
-    lw      k1, 0(k0)
-    nop
-    sw      sp, 0(k1)                       /* store sp in preempted tasks's TCB */
+	/* switch sp back to thread context */
+	move    sp, k0
 
-    la      k0, rt_interrupt_to_thread
-    lw      k1, 0(k0)
-    nop
-    lw      sp, 0(k1)                       /* get new task's stack pointer */
-    j       spurious_interrupt
-    nop
+	/*
+	* if rt_thread_switch_interrupt_flag set, jump to
+	* rt_hw_context_switch_interrupt_do and do not return
+	*/
+	la      k0, rt_thread_switch_interrupt_flag
+	lw      k1, 0(k0)
+	beqz    k1, spurious_interrupt
+	nop
+	sw      zero, 0(k0)                     /* clear flag */
+	nop
+
+	/*
+	* switch to the new thread
+	*/
+	la      k0, rt_interrupt_from_thread
+	lw      k1, 0(k0)
+	nop
+	sw      sp, 0(k1)                       /* store sp in preempted task TCB */
+
+	la      k0, rt_interrupt_to_thread
+	lw      k1, 0(k0)
+	nop
+	lw      sp, 0(k1)                       /* get new task stack pointer */
+	j       spurious_interrupt
+	nop
 
 spurious_interrupt:
-    RESTORE_FPU
-    RESTORE_ALL_AND_RET
+	RESTORE_ALL_AND_RET
 
     .set reorder

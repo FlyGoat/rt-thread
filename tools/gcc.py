@@ -112,9 +112,11 @@ def GCCResult(rtconfig, str):
         
         stdout, stderr = child.communicate()
 
-        # print(stdout)
+        print(stdout)
         if stderr != '':
             print(stderr)
+
+        print("gcc prob")
 
         have_fdset = 0
         have_sigaction = 0
@@ -173,6 +175,7 @@ def GCCResult(rtconfig, str):
     return result
 
 def GenerateGCCConfig(rtconfig):
+    print("gcc")
     str = ''
     cc_header = ''
     cc_header += '#ifndef CCONFIG_H__\n'
@@ -204,6 +207,9 @@ def GenerateGCCConfig(rtconfig):
     str += '\n#ifdef HAVE_INITFINI_ARRAY\n'
     str += 'const int init_fini_array = HAVE_INITFINI_ARRAY;\n'
     str += '#endif\n'
+
+    rtconfig.CFLAGS += '-D__PTHREAD_h -D_SYS__PTHREADTYPES_H_ -D_SCHED_H_ -D_SYS_SCHED_H_'
+    print(rtconfig.CFLAGS)
 
     cc_header += '\n'
     cc_header += GCCResult(rtconfig, str)

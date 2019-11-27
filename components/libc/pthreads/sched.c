@@ -8,6 +8,7 @@
  */
 
 #include <sched.h>
+#include <rtthread.h>
 
 int sched_yield(void)
 {

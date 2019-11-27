@@ -16,11 +16,11 @@
 #ifndef __LS1C_H__
 #define __LS1C_H__
 
-#include "../common/mipsregs.h"
+#include "../common/mips_regs.h"
 
 #define LS1C_ACPI_IRQ    0
 #define LS1C_HPET_IRQ    1
-//#define LS1C_UART0_IRQ    3  // linuxÖÐÊÇ3£¬v1.4°æ±¾µÄ1cÊÖ²áÖÐÊÇ2£¬ÔÝÆÁ±Î£¬´ýÈ·ÈÏ
+//#define LS1C_UART0_IRQ    3  // linuxï¿½ï¿½ï¿½ï¿½3ï¿½ï¿½v1.4ï¿½æ±¾ï¿½ï¿½1cï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î£ï¿½ï¿½ï¿½È·ï¿½ï¿½
 #define LS1C_UART1_IRQ   4
 #define LS1C_UART2_IRQ   5
 #define LS1C_CAN0_IRQ    6
@@ -73,11 +73,11 @@
 #define LS1C_LAST_IRQ 159
 #define LS1C_INTREG_BASE 0xbfd01040
 
-// ÁúÐ¾1cµÄÖÐ¶Ï·ÖÎªÎå×é£¬Ã¿×é32¸ö
+// ï¿½ï¿½Ð¾1cï¿½ï¿½ï¿½Ð¶Ï·ï¿½Îªï¿½ï¿½ï¿½é£¬Ã¿ï¿½ï¿½32ï¿½ï¿½
 #define LS1C_NR_IRQS    (32*5)
 
 
-// GPIO±àºÅºÍÖÐ¶ÏºÅÖ®¼äµÄ»¥Ïà×ª»»
+// GPIOï¿½ï¿½Åºï¿½ï¿½Ð¶Ïºï¿½Ö®ï¿½ï¿½Ä»ï¿½ï¿½ï¿½×ªï¿½ï¿½
 #define LS1C_GPIO_TO_IRQ(GPIOn)     (LS1C_GPIO_FIRST_IRQ + (GPIOn))
 #define LS1C_IRQ_TO_GPIO(IRQn)      ((IRQn) - LS1C_GPIO_FIRST_IRQ)
 

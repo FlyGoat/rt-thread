@@ -11,8 +11,6 @@
 #ifndef __POSIX_TYPES_H__
 #define __POSIX_TYPES_H__
 
-#include <rtthread.h>
-
 #include <stddef.h>
 #include <stdarg.h>
 #include <string.h>

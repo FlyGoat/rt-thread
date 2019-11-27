@@ -19,64 +19,65 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2016Äê9ÔÂ8ÈÕ     Urey         the first version
+ * 2016ï¿½ï¿½9ï¿½ï¿½8ï¿½ï¿½     Urey         the first version
  */
 
 #include <rtthread.h>
 
-#include "../common/mips.h"
+#include "mips.h"
 
-register U32 $GP __asm__ ("$28");
+register rt_uint32_t $GP __asm__ ("$28");
 
 rt_uint8_t *rt_hw_stack_init(void *tentry, void *parameter, rt_uint8_t *stack_addr, void *texit)
 {
-    static rt_uint32_t wSR=0;
-    static rt_uint32_t wGP;
+	static rt_uint32_t wSR=0;
+	static rt_uint32_t wGP;
+	rt_uint8_t *stk;
 
-	mips_reg_ctx	*regCtx;
-	mips_arg_ctx	*argCtx;
+	struct pt_regs *pt;
+
 	rt_uint32_t i;
 
+	/* Should we keep FPU enabled?  */
+	/* Check if local varible have touched */
 	if (wSR == 0)
 	{
 		wSR = read_c0_status();
-		wSR &= 0xfffffffe;
-		wSR |= 0x0403;
+		wSR &= ~(ST0_EXL | ST0_ERL);
+		wSR |= (ST0_IE); /* Set IR EXL and IM3? */
 
 		wGP = $GP;
 	}
 
-	if ((rt_uint32_t) stack_addr & 0x7)
+	/* Get stack aligned */
+	stk = (rt_uint8_t *)RT_ALIGN_DOWN((rt_uint32_t)stack_addr, 8);
+	stk -= sizeof(struct pt_regs);
+	pt =  (struct pt_regs*)stk;
+
+	for (i = 0; i < 8; ++i)
 	{
-		stack_addr = (rt_uint8_t *)((rt_uint32_t)stack_addr - 4);
+		pt->pad0[i] = 0xdeadbeef;
 	}
 
-	argCtx = (mips_arg_ctx *)((rt_uint32_t)stack_addr - sizeof(mips_arg_ctx));
-	regCtx = (mips_reg_ctx *)((rt_uint32_t)stack_addr - sizeof(mips_arg_ctx) - sizeof(mips_reg_ctx));
-
-	for (i = 0; i < 4; ++i)
-	{
-		argCtx->args[i] = i;
-	}
-
-	//±£´æÍ¨ÓÃ¼Ä´æÆ÷
+	/* Fill Stack register numbers */
 	for (i = 0; i < 32; ++i)
 	{
-		regCtx->regs[i] = i;
+		pt->regs[i] = 0xdeadbeef;
 	}
 
-	regCtx->regs[REG_SP] = (rt_uint32_t)stack_addr;
-	regCtx->regs[REG_A0] = (rt_uint32_t)parameter;
-	regCtx->regs[REG_GP] = (rt_uint32_t)wGP;
-	regCtx->regs[REG_FP] = (rt_uint32_t)0x0;
-	regCtx->regs[REG_RA] = (rt_uint32_t)texit;
 
-    regCtx->CP0DataLO	= 0x00;
-    regCtx->CP0DataHI	= 0x00;
-    regCtx->CP0Cause	= read_c0_cause();
-    regCtx->CP0Status	= wSR;
-    regCtx->CP0EPC		= (rt_uint32_t)tentry;
-    regCtx->CP0BadVAddr= 0x00;
+	pt->regs[REG_SP] = (rt_uint32_t)stk;
+	pt->regs[REG_A0] = (rt_uint32_t)parameter;
+	pt->regs[REG_GP] = (rt_uint32_t)wGP;
+	pt->regs[REG_FP] = (rt_uint32_t)0x0;
+	pt->regs[REG_RA] = (rt_uint32_t)texit;
 
-	return (rt_uint8_t *)(regCtx);
+	pt->hi	= 0x0;
+	pt->lo	= 0x0;
+	pt->cp0_cause	= read_c0_cause();
+	pt->cp0_status	= wSR;
+	pt->cp0_epc	= (rt_uint32_t)tentry;
+	pt->cp0_badvaddr	= 0x00;
+
+	return stk;
 }

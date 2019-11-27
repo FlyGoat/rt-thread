@@ -10,7 +10,7 @@ if os.getenv('RTT_CC'):
 
 if  CROSS_TOOL == 'gcc':
     PLATFORM    = 'gcc'
-    EXEC_PATH   = r'E:\work\env\tools\gnu_gcc\mips_gcc\mips-2016.05\bin'
+    EXEC_PATH   = r'/opt/mips-mti-elf/2019.09-01/bin'
 else:
     print('Please make sure your toolchains is GNU GCC!')
     exit(0)
@@ -23,7 +23,7 @@ BUILD = 'release'
 
 if PLATFORM == 'gcc':
     # toolchains
-    PREFIX  = 'mips-sde-elf-'
+    PREFIX  = 'mips-mti-elf-'
     CC      = PREFIX + 'gcc'
     CXX     = PREFIX + 'g++'
     AS      = PREFIX + 'gcc'
@@ -36,8 +36,8 @@ if PLATFORM == 'gcc':
     STRIP   = PREFIX + 'strip'
 
     DEVICE = ' -mips32r2 -msoft-float -mfp32'
-    CFLAGS  = DEVICE + ' -EL -G0 -mno-abicalls -fno-pic -fno-builtin -fno-exceptions -ffunction-sections -fno-omit-frame-pointer'
-    AFLAGS  = ' -c' + DEVICE + ' -EL -x assembler-with-cpp'
+    CFLAGS  = DEVICE + ' -EL -G0 -mno-abicalls -fno-pic -fno-builtin -fno-exceptions -ffunction-sections -fno-omit-frame-pointer -D__PTHREAD_h -D_SYS__PTHREADTYPES_H_ -D_SCHED_H_ -D_SYS_SCHED_H_'
+    AFLAGS  = ' -c' + DEVICE + ' -EL -x assembler-with-cpp -DSYSTEM_STACK=0x80003fe8'
     LFLAGS  = DEVICE + ' -EL -Wl,--gc-sections,-Map=rtthread_x1000.map,-cref,-u,Reset_Handler -T x1000_ram.lds'
     CPATH   = ''
     LPATH   = ''

@@ -4,7 +4,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2017Äê4ÔÂ10ÈÕ     Urey         the first version
+ * 2017ï¿½ï¿½4ï¿½ï¿½10ï¿½ï¿½     Urey         the first version
  */
 
 #include <rthw.h>
@@ -178,7 +178,7 @@ static void _slcd_init_dma_desc(struct slcdc_dev_s *lcd_dev)
     uint32_t bypes_per_panel = (((cfg->width * _slcd_convert_bpp(cfg->bpp) / 8 + 3) >> 2 << 2) * cfg->height);
 
     //dmadesc_tmp used to start DMA
-    lcd_dev->desc_tmp->fdadr        = virt_to_phys((void *)lcd_dev->desc_dat);
+    lcd_dev->desc_tmp->fdadr        = CPHYSADDR((void *)lcd_dev->desc_dat);
     lcd_dev->desc_tmp->fsadr        = 0;
     lcd_dev->desc_tmp->fidr         = 0xda0c0;
     lcd_dev->desc_tmp->ldcmd        = LCDC_CMD_CMD | LCDC_CMD_FRM_EN | 0;
@@ -188,8 +188,8 @@ static void _slcd_init_dma_desc(struct slcdc_dev_s *lcd_dev)
     lcd_dev->desc_tmp->desc_size    = 0;
 
     //dmadesc_cmd used to write CMD
-    lcd_dev->desc_cmd->fdadr        = virt_to_phys((void *)lcd_dev->desc_dat);
-    lcd_dev->desc_cmd->fsadr        = virt_to_phys((void *)lcd_dev->fb_cmd);
+    lcd_dev->desc_cmd->fdadr        = CPHYSADDR((void *)lcd_dev->desc_dat);
+    lcd_dev->desc_cmd->fsadr        = CPHYSADDR((void *)lcd_dev->fb_cmd);
     lcd_dev->desc_cmd->fidr         = 0xda0c1;
     lcd_dev->desc_cmd->offsize      = 0;
     lcd_dev->desc_cmd->page_width   = 0;
@@ -214,8 +214,8 @@ static void _slcd_init_dma_desc(struct slcdc_dev_s *lcd_dev)
     }
 
     //frame_desc[1] used to update GRAM
-    lcd_dev->desc_dat->fdadr         = virt_to_phys((void *)lcd_dev->desc_cmd);
-    lcd_dev->desc_dat->fsadr         = virt_to_phys((void *)lcd_dev->fb_screen);
+    lcd_dev->desc_dat->fdadr         = CPHYSADDR((void *)lcd_dev->desc_cmd);
+    lcd_dev->desc_dat->fsadr         = CPHYSADDR((void *)lcd_dev->fb_screen);
     lcd_dev->desc_dat->fidr          = 0xda0d0;
     lcd_dev->desc_dat->ldcmd         = LCDC_CMD_EOFINT | LCDC_CMD_FRM_EN | (bypes_per_panel / 4);
     lcd_dev->desc_dat->offsize       = 0;
@@ -240,7 +240,7 @@ static void _slcd_init_dma_desc(struct slcdc_dev_s *lcd_dev)
 
     lcd_dev->desc_dat->desc_size = (((cfg->height - 1) << LCDC_DESSIZE_HEIGHT_BIT) | ((cfg->width - 1) << LCDC_DESSIZE_WIDTH_BIT));
 
-    slcd_reg_write(LCDC_DA0, virt_to_phys(lcd_dev->desc_cmd));
+    slcd_reg_write(LCDC_DA0, CPHYSADDR(lcd_dev->desc_cmd));
 
     //desc self
     rt_hw_flush_cache_all();

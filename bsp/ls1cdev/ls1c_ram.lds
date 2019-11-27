@@ -20,20 +20,25 @@ GROUP(-lgcc -lc)
 ENTRY(_start)
 SECTIONS
 {
-    . = 0x80000000 ;
-
+    . = 0x82000000 ;
     . = ALIGN(4);
-    .text : 
+    .text :
     {
-		start = ABSOLUTE(.);
-		*(.start);
+	 start = ABSOLUTE(.);
+	 *(.start);
+	 . = ALIGN(0x1000);
+	 __ebase_start = ABSOLUTE(.);
+	 *(.exc_vectors)
+	 __ebase_end = ABSOLUTE(.);
+    	 . = ALIGN(4);	 
          *(.text)
          *(.text.*)
          *(.rodata)
          *(.rodata.*)
          *(.rodata1)
          *(.rodata1.*)
-         
+
+
          /* section information for finsh shell */
          . = ALIGN(4);
          __fsymtab_start = .;

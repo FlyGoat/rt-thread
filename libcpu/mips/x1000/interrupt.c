@@ -98,14 +98,14 @@ rt_isr_handler_t rt_hw_interrupt_install(int vector, rt_isr_handler_t handler,
     return old_handler;
 }
 
-rt_inline int fls(int x)
+rt_inline int fast_fls(int x)
 {
     __asm__("clz %0, %1" : "=r" (x) : "r" (x));
 
     return 32 - x;
 }
 
-void rt_interrupt_dispatch(void *ptreg)
+void rt_do_mips_cpu_irq(rt_uint32_t ip)
 {
     void *param;
     rt_isr_handler_t irq_func;
@@ -113,34 +113,24 @@ void rt_interrupt_dispatch(void *ptreg)
     int irq = 0, group;
     rt_uint32_t intc_ipr0 = 0, intc_ipr1 = 0, vpu_pending = 0;
 
-    rt_uint32_t c0_status, c0_cause;
-    rt_uint32_t pending_im;
 
-    /* check os timer */
-    c0_status = read_c0_status();
-    c0_cause = read_c0_cause();
-
-	pending_im = (c0_cause & ST0_IM) & (c0_status & ST0_IM);
-
-    if (pending_im & CAUSEF_IP3)
+    if (ip == 3)
     {
-		extern void rt_hw_ost_handler(void);
+	extern void rt_hw_ost_handler(void);
         rt_hw_ost_handler();
         return;
-    }
-    if (pending_im & CAUSEF_IP2)
-    {
+    } else if (ip == 2) {
         intc_ipr0 = REG_INTC_IPR(0);
         intc_ipr1 = REG_INTC_IPR(1);
 
         if (intc_ipr0)
         {
-            irq = fls(intc_ipr0) - 1;
+            irq = fast_fls(intc_ipr0) - 1;
             intc_ipr0 &= ~(1<<irq);
         }
         else if(intc_ipr1)
         {
-            irq = fls(intc_ipr1) - 1;
+            irq = fast_fls(intc_ipr1) - 1;
             intc_ipr1 &= ~(1<<irq);
             irq += 32;
         }
@@ -163,20 +153,10 @@ void rt_interrupt_dispatch(void *ptreg)
 
         /* ack interrupt */
         __intc_ack_irq(irq);
+    } else {
+	    rt_kprintf("unknown ip %d\n", ip);
     }
 
-    if (pending_im & CAUSEF_IP0)
-        rt_kprintf("CAUSEF_IP0\n");
-    if (pending_im & CAUSEF_IP1)
-        rt_kprintf("CAUSEF_IP1\n");
-    if (pending_im & CAUSEF_IP4)
-        rt_kprintf("CAUSEF_IP4\n");
-    if (pending_im & CAUSEF_IP5)
-        rt_kprintf("CAUSEF_IP5\n");
-    if (pending_im & CAUSEF_IP6)
-        rt_kprintf("CAUSEF_IP6\n");
-    if (pending_im & CAUSEF_IP7)
-        rt_kprintf("CAUSEF_IP7\n");
 }
 
 #ifdef RT_USING_INTERRUPT_INFO

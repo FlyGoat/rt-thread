@@ -37,6 +37,9 @@ SECTIONS
         *(.text.startup .text.startup.*)
         *(.text.hot .text.hot.*)
         *(.text .stub .text.* .gnu.linkonce.t.*)
+	__ebase_start = ABSOLUTE(.);
+	 KEEP(*(.exc_vectors))
+	__ebase_end = ABSOLUTE(.);
         *(.text)                        /* remaining code */
         *(.text.*)                      /* remaining code */
         *(.rodata)                      /* read-only data (constants) */
@@ -125,15 +128,6 @@ SECTIONS
     .iram : AT(_iramat)
     {
         _iramstart = .;
-        *(.vectors.1);
-        . = 0x100;
-        *(.vectors.2);
-        . = 0x180;
-        *(.vectors.3);
-        . = 0x200;
-        *(.vectors.4);
-        *(.vectors);
-
         *(.icode);
         *(.irodata);
         *(.idata);

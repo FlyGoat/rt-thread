@@ -13,6 +13,8 @@
 #include <rtthread.h>
 #include <rthw.h>
 
+#include "mips_regs.h"
+#include "exception.h"
 #include "board.h"
 #include "drv_uart.h"
 #include "ls1c.h"
@@ -57,6 +59,7 @@ void rt_hw_timer_init(void)
 /**
  * init hardware FPU
  */
+#ifdef RT_USING_FPU
 void rt_hw_fpu_init(void)
 {
     rt_uint32_t c0_status = 0;
@@ -68,15 +71,15 @@ void rt_hw_fpu_init(void)
     write_c0_status(c0_status);
 
     // 配置FPU
-    c1_status = read_c1_status();
-    c1_status |= (FPU_CSR_FS | FPU_CSR_FO | FPU_CSR_FN);    // set FS, FO, FN
+    c1_status = read_32bit_cp1_register(CP1_STATUS);
+    c1_status |= (FPU_CSR_FS | FPU_CSR_F0 | FPU_CSR_FN);    // set FS, FO, FN
     c1_status &= ~(FPU_CSR_ALL_E);                          // disable exception
     c1_status = (c1_status & (~FPU_CSR_RM)) | FPU_CSR_RN;   // set RN
-    write_c1_status(c1_status);
+    write_32bit_cp1_register(CP1_STATUS, c1_status);
 
-    return ;
+    return;
 }
-
+#endif
 
 /**
  * This function will initial sam7s64 board.
@@ -85,17 +88,12 @@ void rt_hw_board_init(void)
 {
 	/* init cache */
 	rt_hw_cache_init();
-	
+
+	rt_hw_exception_init();
+
 	/* init hardware interrupt */
 	rt_hw_interrupt_init();
 
-	/* clear bev */
-	write_c0_status(read_c0_status()&(~(1<<22)));
-
-	/* copy vector */
-	rt_memcpy((void *)A_K0BASE, tlb_refill_exception, 0x80);
-	rt_memcpy((void *)(A_K0BASE + 0x180), general_exception, 0x80);
-	rt_memcpy((void *)(A_K0BASE + 0x200), irq_exception, 0x80);
 
 	invalidate_writeback_dcache_all();
 	invalidate_icache_all();

@@ -279,7 +279,7 @@
 /* PKG_USING_HELLO is not set */
 /* PKG_USING_MULTIBUTTON is not set */
 #define BOARD_X1000_REALBOARD
-/* RT_USING_HARD_FLOAT is not set */
+/* RT_USING_FPU is not set */
 /* BOARD_PHOENIX is not set */
 /* BOARD_HALLEY2 is not set */
 /* BOARD_HALLEY2_FIR is not set */

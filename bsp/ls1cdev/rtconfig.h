@@ -162,7 +162,7 @@
 /* POSIX layer and C standard library */
 
 #define RT_USING_LIBC
-#define RT_USING_PTHREADS
+/* RT_USING_PTHREADS */
 /* RT_USING_POSIX is not set */
 /* RT_USING_MODULE is not set */
 
@@ -174,7 +174,7 @@
 
 /* light weight TCP/IP stack */
 
-#define RT_USING_LWIP
+/* #define RT_USING_LWIP */
 #define RT_USING_LWIP141
 /* RT_USING_LWIP202 is not set */
 /* RT_USING_LWIP210 is not set */
@@ -309,7 +309,6 @@
 
 /* example package: hello */
 
-/* PKG_USING_HELLO is not set */
 /* RT_USING_SELF_BOOT is not set */
 #define RT_USING_UART2
 #define RT_UART_RX_BUFFER_SIZE 64

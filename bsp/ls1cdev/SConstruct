@@ -2,10 +2,7 @@ import os
 import sys
 import rtconfig
 
-if os.getenv('RTT_ROOT'):
-    RTT_ROOT = os.getenv('RTT_ROOT')
-else:
-    RTT_ROOT = os.path.normpath(os.getcwd() + '/../..')
+from rtconfig import RTT_ROOT
 
 sys.path = sys.path + [os.path.join(RTT_ROOT, 'tools')]
 from building import *
@@ -25,13 +22,10 @@ env.PrependENVPath('PATH', rtconfig.EXEC_PATH)
 Export('RTT_ROOT')
 Export('rtconfig')
 
+
 # prepare building environment
 objs = PrepareBuilding(env, RTT_ROOT)
-
-if GetDepend('RT_USING_SELF_BOOT'):
-    rtconfig.LFLAGS += " -Ttext 0x80010000"
-else:
-	rtconfig.LFLAGS += " -Ttext 0x80200000"    
+   
 env.Replace(LINKFLAGS = rtconfig.LFLAGS)
 
 if GetDepend('RT_USING_FPU'):
