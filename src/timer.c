@@ -302,6 +302,8 @@ rt_err_t rt_timer_start(rt_timer_t timer)
     unsigned int tst_nr;
     static unsigned int random_nr;
 
+    rt_kprintf("Timer start called\n");
+
     /* timer check */
     RT_ASSERT(timer != RT_NULL);
     RT_ASSERT(rt_object_get_type(&timer->parent) == RT_Object_Class_Timer);
@@ -376,14 +378,16 @@ rt_err_t rt_timer_start(rt_timer_t timer)
     random_nr++;
     tst_nr = random_nr;
 
+	rt_kprintf("Instert 1\n");
     rt_list_insert_after(row_head[RT_TIMER_SKIP_LIST_LEVEL - 1],
                          &(timer->row[RT_TIMER_SKIP_LIST_LEVEL - 1]));
     for (row_lvl = 2; row_lvl <= RT_TIMER_SKIP_LIST_LEVEL; row_lvl++)
     {
-        if (!(tst_nr & RT_TIMER_SKIP_LIST_MASK))
-            rt_list_insert_after(row_head[RT_TIMER_SKIP_LIST_LEVEL - row_lvl],
+        if (!(tst_nr & RT_TIMER_SKIP_LIST_MASK)){
+        	rt_kprintf("Instert 2\n");
+	    rt_list_insert_after(row_head[RT_TIMER_SKIP_LIST_LEVEL - row_lvl],
                                  &(timer->row[RT_TIMER_SKIP_LIST_LEVEL - row_lvl]));
-        else
+	}else
             break;
         /* Shift over the bits we have tested. Works well with 1 bit and 2
          * bits. */
@@ -679,6 +683,8 @@ static void rt_thread_timer_entry(void *parameter)
 void rt_system_timer_init(void)
 {
     int i;
+
+    rt_kprintf("Timer inited\n");
 
     for (i = 0; i < sizeof(rt_timer_list) / sizeof(rt_timer_list[0]); i++)
     {

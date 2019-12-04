@@ -1,25 +1,11 @@
 /*
- * File      : mips_regs.h
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2008 - 2012, RT-Thread Development Team
+ * Copyright (c) 2006-2019, RT-Thread Development Team
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 2016��9��7��     Urey         the first version
+ * 2019-12-04     Jiaxun Yang  Initial version
  */
 
 #ifndef _MIPS_REGS_H_
@@ -1125,6 +1111,14 @@ __BUILD_SET_C0(config,CP0_CONFIG)
 #define set_cp0_status(x)	set_c0_status(x)
 #define set_cp0_cause(x)	set_c0_cause(x)
 #define set_cp0_config(x)	set_c0_config(x)
+
+#define readb(reg)		(*((volatile unsigned char *) (reg)))
+#define readw(reg)		(*((volatile unsigned short *) (reg)))
+#define readl(reg)		(*((volatile unsigned int *) (reg)))
+
+#define writeb(data, reg)	((*((volatile unsigned char *)(reg))) = (unsigned char)(data))
+#define writew(data, reg)	((*((volatile unsigned short *)(reg))) = (unsigned short)(data))
+#define writel(data, reg)	((*((volatile unsigned int *)(reg))) = (unsigned int)(data))
 
 #endif /* !__ASSEMBLY__ */
 

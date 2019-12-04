@@ -19,7 +19,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2016��9��10��     Urey         the first version
+ * 2016-09-07     Urey         the first version
  */
 
 #ifndef _MIPS_CFG_H_

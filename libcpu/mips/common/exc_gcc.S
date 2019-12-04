@@ -1,49 +1,59 @@
-	.section .exc_vectors, "ax", %progbits
-	.extern tlb_refill_handler
-	.extern cache_error_handler
-	.extern mips_irq_handle
+/*
+ * Copyright (c) 2006-2019, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2019-12-04     Jiaxun Yang  Initial version
+ */
 
-	/* Exception Handler */
+    .section ".exc_vectors", "ax"
+    .extern tlb_refill_handler
+    .extern cache_error_handler
+    .extern mips_irq_handle
 
-	/* 0x0 - TLB refill handler */
-	.org 0x0
-	.global tlb_refill_exception
-	.type	tlb_refill_exception,@function
+    /* 0x0 - TLB refill handler */
+    .global tlb_refill_exception
+    .type	tlb_refill_exception,@function
+ebase_start:
 tlb_refill_exception:
-	j	tlb_refill_handler
-	nop
-	
-	/* 0x100 - Cache error handler */
-	.org 0x100
-	j	cache_error_handler
-	nop
-    
-	/* 0x180 - Exception/Interrupt handler */
-	.org 0x180
-	.global general_exception
-	.type	general_exception,@function
+    b	_general_exception_handler
+    nop
+
+    /* 0x100 - Cache error handler */
+    .org ebase_start + 0x100
+    j	cache_error_handler
+    nop
+
+    /* 0x180 - Exception/Interrupt handler */
+    .global general_exception
+    .type	general_exception,@function
+    .org ebase_start + 0x180
 general_exception:
-	j	_general_exception_handler
-	nop
-    
-	/* 0x200 - Special Exception Interrupt handler (when IV is set in CP0_CAUSE) */
-	.org 0x200
-	.global irq_exception
-	.type	irq_exception,@function
+    b	_general_exception_handler
+    nop
+
+    /* 0x200 - Special Exception Interrupt handler (when IV is set in CP0_CAUSE) */
+    .global irq_exception
+    .type	irq_exception,@function
+    .org ebase_start + 0x200
 irq_exception:
-	j	_irq_handler
-	nop
+    b	_general_exception_handler
+    nop
 
-	/* general exception handler */
+    /* general exception handler */
 _general_exception_handler:
-	.set	noreorder
-	j	mips_irq_handle
-	nop
-	.set	reorder
+    .set	noreorder
+    la	$k0, mips_irq_handle
+    jr	$k0
+    nop
+    .set	reorder
 
-	/* interrupt handler */
+    /* interrupt handler */
 _irq_handler:
-	.set	noreorder
-	j	mips_irq_handle
-	nop
-	.set	reorder
+    .set	noreorder
+    la	$k0, mips_irq_handle
+    jr	$k0
+    nop
+    .set	reorder

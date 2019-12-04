@@ -284,28 +284,27 @@ _gettimeofday_r(struct _reent *ptr, struct timeval *__tp, void *__tzp)
 #define NANOSECOND_PER_TICK     (NANOSECOND_PER_SECOND  / RT_TICK_PER_SECOND)
 
 struct timeval _timevalue = {0};
-#ifdef RT_USING_DEVICE
 static void libc_system_time_init(void)
 {
-    time_t time;
+    time_t time = 0;
     rt_tick_t tick;
+
+#ifdef RT_USING_DEVICE
     rt_device_t device;
 
-    time = 0;
     device = rt_device_find("rtc");
     if (device != RT_NULL)
     {
         /* get realtime seconds */
         rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time);
     }
-
+#endif
     /* get tick */
     tick = rt_tick_get();
 
     _timevalue.tv_usec = MICROSECOND_PER_SECOND - (tick%RT_TICK_PER_SECOND) * MICROSECOND_PER_TICK;
     _timevalue.tv_sec = time - tick/RT_TICK_PER_SECOND - 1;
 }
-#endif
 
 int libc_get_time(struct timespec *time)
 {

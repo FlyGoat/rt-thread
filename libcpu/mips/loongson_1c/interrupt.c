@@ -155,7 +155,7 @@ void rt_do_mips_cpu_irq(rt_uint32_t ip)
 {
     rt_uint32_t intstatus, irq, n;
 
-    if (ip = 7) {
+    if (ip == 7) {
 	    rt_hw_timer_handler();
     } else {
     n = ip - 2;

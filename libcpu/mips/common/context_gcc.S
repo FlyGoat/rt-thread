@@ -5,10 +5,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2010-05-17     swkyer       first version
- * 2010-09-11     bernard      port to Loongson SoC3210
- * 2011-08-08     lgnq         port to Loongson LS1B
- * 2019-07-19     Zhou Yanjie  clean up code
+ * 2019-12-04     Jiaxun Yang  Initial version
  */
 
 #ifndef __ASSEMBLY__
@@ -20,39 +17,6 @@
 
     .section ".text", "ax"
     .set noreorder
-
-/*
- * rt_base_t rt_hw_interrupt_disable()
- */
-    .globl rt_hw_interrupt_disable
-rt_hw_interrupt_disable:
-    mfc0    v0, CP0_STATUS
-    and     v1, v0, ~ST0_IE
-    mtc0    v1, CP0_STATUS
-    ehb
-    jr      ra
-    nop
-
-/*
- * void rt_hw_interrupt_enable(rt_base_t level)
- * Ignore the level, we have noting to do with it
- */
-    .globl rt_hw_interrupt_enable
-rt_hw_interrupt_enable:
-    mfc0    a0, CP0_STATUS
-    li      t0, ~(ST0_ERL | ST0_EXL)
-    and     a0, a0, t0
-    ori     a0, ST0_IE
-    mtc0    a0, CP0_STATUS
-    ehb
-    mfc0    a0, CP0_CAUSE
-#ifdef RT_CPU_USING_IV
-    ori     a0, CAUSEF_IV  /* EBASE + 0x200 */    
-#endif                                                                                             
-    mtc0    a0, CP0_CAUSE
-    ehb
-    jr      ra
-    nop
 
 /*
  * void rt_hw_context_switch(rt_uint32 from, rt_uint32 to)
@@ -111,11 +75,10 @@ _reswitch:
 mips_irq_handle:
 	SAVE_ALL
 
-
 	/* let k0 keep the current context sp */
 	move    k0, sp 
 	/* switch to kernel stack */
-	li      sp, SYSTEM_STACK
+	la      sp, _system_stack
 
 	jal     rt_interrupt_enter
 	nop
@@ -157,5 +120,4 @@ mips_irq_handle:
 
 spurious_interrupt:
 	RESTORE_ALL_AND_RET
-
     .set reorder

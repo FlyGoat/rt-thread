@@ -1,13 +1,13 @@
 /*
- * This file is subject to the terms and conditions of the GNU General Public
- * License.  See the file "COPYING" in the main directory of this archive
- * for more details.
+ * Copyright (c) 2006-2019, RT-Thread Development Team
  *
- * Copyright (C) 1994, 95, 96, 99, 2001 Ralf Baechle
- * Copyright (C) 1994, 1995, 1996 Paul M. Antoine.
- * Copyright (C) 1999 Silicon Graphics, Inc.
- * Copyright (C) 2007  Maciej W. Rozycki
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2019-12-04     Jiaxun Yang  Initial version
  */
+
 #ifndef __STACKFRAME_H__
 #define __STACKFRAME_H__
 
@@ -22,9 +22,9 @@
 #ifdef RT_USING_FPU
 	/* Ensure CU1 (FPU) is enabled */
 	MFC0 v1, CP0_STATUS
-	andi v1, ST0_CU1
+	ori v1, ST0_CU1
 	MTC0 v1, CP0_STATUS
-	ehb
+	SSNOP
 	cfc1 v1, fcr31
 	/* Store as delay slot */
 	s.d $f0, PT_FPU_R0(sp)
@@ -125,9 +125,9 @@
 #ifdef RT_USING_FPU
 	/* Ensure CU1 (FPU) is enabled */
 	MFC0 v1, CP0_STATUS
-	andi v1, ST0_CU1
+	ori v1, ST0_CU1
 	MTC0 v1, CP0_STATUS
-	ehb
+	SSNOP
 	LONG_L v1, PT_FPU_FCSR31(sp)
 	ctc1 v1, fcsr31
 	l.d $f0, PT_FPU_R0(sp)
@@ -186,12 +186,23 @@
 	LONG_L	$30, PT_R30(sp)
 	.endm
 
+#define STATMASK 0x1f
+
 	.macro	RESTORE_SOME
 	.set	push
 	.set	reorder
 	.set	noat
+	mfc0	a0, CP0_STATUS
+	ori	a0, STATMASK
+	xori	a0, STATMASK
+	mtc0	a0, CP0_STATUS
+	li	v1, (ST0_CU1 | ST0_FR | ST0_IM)
+	and	a0, v1, a0
 	LONG_L	v0, PT_STATUS(sp)
-	MTC0	v0, CP0_STATUS
+	li	v1, ~(ST0_CU1 | ST0_FR | ST0_IM)
+	and	v0, v1
+	or	v0, a0
+	mtc0	v0, CP0_STATUS
 	LONG_L	v1, PT_EPC(sp)
 	MTC0	v1, CP0_EPC
 	LONG_L	$31, PT_R31(sp)
@@ -208,9 +219,8 @@
 
 	.macro	RESTORE_SP_AND_RET
 	LONG_L	sp, PT_R29(sp)
-	.set	mips3
 	eret
-	.set	mips0
+	nop
 	.endm
 
 

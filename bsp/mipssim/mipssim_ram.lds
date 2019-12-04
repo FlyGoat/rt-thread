@@ -1,17 +1,11 @@
 /*
- * File      : ls1c_ram.lds
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2011, RT-Thread Development Team
+ * Copyright (c) 2006-2019, RT-Thread Development Team
  *
- * The license and distribution terms for this file may be
- * found in the file LICENSE in this distribution or at
- * http://www.rt-thread.org/license/LICENSE
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 2010-05-17     swkyer       first version
- * 2010-09-04     bernard      move the beginning entry to 0x80200000
- * 2018-05-12     zhuangwei    use -Ttext
+ * 2019-12-04     Jiaxun Yang  Initial version
  */
 
 OUTPUT_ARCH(mips)
@@ -20,17 +14,15 @@ GROUP(-lgcc -lc)
 ENTRY(_start)
 SECTIONS
 {
-    . = 0x80200000 ;
-    . = ALIGN(4);
+    . = 0x80000000 ;
     .text :
     {
-	 start = ABSOLUTE(.);
-	 *(.start);
-	 . = ALIGN(0x1000);
-	 __ebase_start = ABSOLUTE(.);
-	 KEEP(*(.exc_vectors))
-	 __ebase_end = ABSOLUTE(.);
-    	 . = ALIGN(4);	 
+     __ebase_entry = .;
+     KEEP(*(.exc_vectors))
+     __ebase_end = .;
+     start = .;
+     *(.start);
+         . = ALIGN(4);	 
          *(.text)
          *(.text.*)
          *(.rodata)
@@ -55,6 +47,12 @@ SECTIONS
          KEEP(*(SORT(.rti_fn*)))
           __rt_init_end = .;
          . = ALIGN(4);
+        
+         . = ALIGN(4);
+        __rt_utest_tc_tab_start = .;
+        KEEP(*(UtestTcTab))
+        __rt_utest_tc_tab_end = .;
+        . = ALIGN(4);
     }
     
     .eh_frame_hdr : 
@@ -72,12 +70,20 @@ SECTIONS
         
          *(.data1)
          *(.data1.*)
-         
+
          . = ALIGN(8);
          _gp = ABSOLUTE(.);     /* Base of small data */
          
          *(.sdata)
          *(.sdata.*)
+    }
+
+    .stack :
+    {
+        . = ALIGN(8);
+        _system_stack_start = .;
+        . = . + 0x1000;
+        _system_stack = .;
     }
 
     .sbss : 
