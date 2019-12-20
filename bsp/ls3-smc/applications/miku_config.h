@@ -1,0 +1,12 @@
+#ifndef _MIKU_CONFIG_H__
+#define _MIKU_CONFIG_H__
+
+#define MIKU_DEBUG	1
+#define MIKU_HAVE_SENSORS	1
+#define MIKU_SENSORS_HAVE_PACKAGE	1
+
+#define MIKU_HAVE_FANCONTROL	1
+#define MIKU_FAN_HAVE_PACKAGE	1
+#define MIKU_HAVE_DVFS		1
+
+#endif
