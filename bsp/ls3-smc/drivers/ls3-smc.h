@@ -34,6 +34,9 @@
 #define LS7A_PWM3_FULL                  (LS7A_PWM3_REG_BASE + 0x8)
 #define LS7A_PWM3_CTRL                  (LS7A_PWM3_REG_BASE + 0xc)
 
+#define LS7A_RTC_REG_BASE		(LS7A_MISC_BASE + 0x50100)
+#define LS7A_RTC_RTCREAD		(LS7A_RTC_REG_BASE + 0x68)
+
 #ifndef __ASSEMBLY__
 #include <rthw.h>
 void rt_hw_timer_handler(void);

@@ -18,7 +18,8 @@ struct pll_level
 	rt_uint8_t stable_scale;
 	rt_uint8_t node_scale;
 	rt_uint8_t ht_scale;
-	rt_time_t minimal_time;
+	rt_int8_t max_temp;
+	rt_time_t min_time; /* Minimal time to stay before bump down to a lower freq */
 	rt_time_t maxium_time;
 };
 
@@ -40,7 +41,11 @@ void main_pll_sel(rt_uint8_t refc, rt_uint16_t loopc, rt_uint8_t div);
 void stable_scale_sel(uint8_t scale);
 void ht_scale_sel(uint8_t scale);
 void node_scale_sel(uint8_t scale);
+rt_uint8_t pll_get_refc(void);
+rt_uint16_t pll_get_loopc(void);
+rt_uint8_t pll_get_div(void);
 void pmic_vctrl(u32 mv);
+rt_uint32_t time_stamp_ms(void);
 
 /* Freqscale Related */
 #define CMD_GET_CPU_FREQUENCY 0x5

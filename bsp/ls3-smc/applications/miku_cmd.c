@@ -23,7 +23,6 @@ void miku_proc_cmd(void)
 	if(msg.complete)
 		return;
 
-	MIKU_DBG("cmd_mbox: %x\n", msg);
 	if (msg.cmd >= MIKU_MAX_CMD) {
 		msg.cmd = miku_handle_unexist_cmd(&msg);
 	} else {

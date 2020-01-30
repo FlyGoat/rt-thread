@@ -21,20 +21,15 @@ void miku_decision_thread(void *parameter)
 		/* This thread is used to make decisions of target values */
 		miku_fancontrol_decision();
 		miku_judge_dvfs();
-		rt_thread_yield();
-	}
-}
-
-void miku_action_thread(void *parameter)
-{
-	while(1)
-	{
 		/* This thread is used to do adjustments after decistions made */	
 		miku_fancontrol_action();
 		miku_dvfs_action();
 		rt_thread_yield();
+		rt_thread_yield();
 	}
 }
+
+
 
 void miku_main()
 {
@@ -59,13 +54,6 @@ rt_err_t miku_threads_init()
 					RT_MAIN_THREAD_PRIORITY, 20);
 	if(decision != RT_NULL)
 		rt_thread_startup(decision);
-	else
-		return RT_ERROR;
-
-	action = rt_thread_create("miku_action", miku_action_thread, RT_NULL, MIKU_DEFAULT_STACK_SIZE,
-					RT_MAIN_THREAD_PRIORITY, 20);
-	if(action != RT_NULL)
-		rt_thread_startup(action);
 	else
 		return RT_ERROR;
 

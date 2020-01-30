@@ -75,6 +75,36 @@ void main_pll_sel(rt_uint8_t refc, rt_uint16_t loopc, rt_uint8_t div)
 //	rt_kprintf("step5: sel pll\n");
 }
 
+rt_uint8_t pll_get_refc(void)
+{
+	rt_uint32_t lo = MAIN_PLL_REG_LO;
+
+	lo &= REFC_MASK;
+	lo = lo >> REFC_F;
+
+	return lo;
+}
+
+rt_uint16_t pll_get_loopc(void)
+{
+	rt_uint32_t hi = MAIN_PLL_REG_HI;
+
+	hi &= LOOPC_MASK;
+	hi = hi >> REFC_F;
+
+	return hi;
+}
+
+rt_uint8_t pll_get_div(void)
+{
+	rt_uint32_t hi = MAIN_PLL_REG_HI;
+
+	hi &= DIV_MASK;
+	hi = hi >> DIV_F;
+
+	return hi;
+}
+
 void stable_scale_sel(uint8_t scale)
 {
 	rt_uint32_t hi = MISC_CFG_HI;

@@ -5,22 +5,24 @@ struct pll_level pll_levels[NUM_PLL_LEVEL] =
 	.refc = 2,
 	.loopc = 33,
 	.div = 1,
-	.vid = 1250, /* FIXME: Low down it later */
+	.vid = 1150, /* FIXME: Low down it later */
 	.highest_scale = (4 - 1), /* 4 / 8 */
 	.lowest_scale = 0, /* 1 / 8 */
 	.stable_scale = (8 - 1), /* 8/8, 1650MHz */
 	.node_scale = (4 - 1), /* 4 / 8 */
 	.ht_scale = (3 - 1), /* 3 / 8 */
+	.min_time = 5000, /* 5s */
 },{/* Normal: Max 1650MHz */
 	.refc = 2,
 	.loopc = 33,
 	.div = 1,
-	.vid = 1250, /* FIXME: Low down it later */
+	.vid = 1150, /* FIXME: Low down it later */
 	.highest_scale = (8 - 1), /* 8 / 8 */
 	.lowest_scale = (5 - 1), /* 5 / 8 */
 	.stable_scale = (8 - 1), /* 8/8, 1650MHz */
 	.node_scale = (8 - 1), /* 8 / 8 */
 	.ht_scale = (4 - 1), /* 4 / 8 */
+	.min_time = 5000, /* 3s */
 },{/* Boost: Max 2200MHz */
 	.refc = 1,
 	.loopc = 22,
@@ -29,8 +31,9 @@ struct pll_level pll_levels[NUM_PLL_LEVEL] =
 	.highest_scale = (8 - 1), /* 8 / 8 */
 	.lowest_scale = (5 - 1), /* 5 / 8 */
 	.stable_scale = (6 - 1), /* 6/8, 1650MHz */
-	.node_scale = (4 - 1), /* 4 / 8 */
-	.ht_scale = (3 - 1), /* 3 / 8 */
+	.node_scale = (8 - 1), /* 4 / 8 */
+	.ht_scale = (4 - 1), /* 3 / 8 */
+	.min_time = 5000, /* 3s */
 }
 };
 
@@ -39,30 +42,26 @@ struct pll_level pll_levels[NUM_PLL_LEVEL] =
 rt_uint16_t	shadow_level_freq[SHADOW_LEVEL_NUM] = {200, 410, 618, 825, 1030, 1237, 1443, BASEFREQ, 1925, 2200};
 
 rt_uint16_t	target_shadow_freq[NUM_CORE];
+rt_uint8_t	current_core_scale[NUM_CORE];
+rt_uint32_t	core_scale_last_bump[NUM_CORE];
+rt_uint32_t	core_scale_min = 3000;
+
 rt_uint8_t	current_pll_level;
 rt_uint8_t	target_pll_level;
 rt_uint16_t	current_vid;
 rt_uint16_t	target_vid;
-rt_time_t	last_change;
+rt_uint32_t	last_bump_up;
 
-static rt_time_t get_time()
-{
-	return rt_tick_get() / rt_tick_from_millisecond(1);
-}
-
-static rt_uint8_t core_current_scale(rt_uint8_t core_id)
-{
-	rt_uint32_t reg = HWREG32(LS3_CORE_SCALE_REG);
-	reg = (reg >> (4 * core_id)) & 0x7;
-	return reg;
-}
-
-static rt_uint8_t core_set_scale(rt_uint8_t core_id, rt_uint8_t scale)
+static void core_set_scale(rt_uint8_t core_id, rt_uint8_t scale)
 {
 	if (scale > 0x7)
 		scale = 0x7;
 
-	MIKU_DBG("Set Core: %d, scale: %d", core_id, scale);
+	if (scale == current_core_scale[core_id])
+		return;
+
+	MIKU_DBG("HW Set Core: %u, scale: %u", core_id, scale);
+	current_core_scale[core_id] = scale;
 
 	rt_uint32_t reg = HWREG32(LS3_CORE_SCALE_REG);
 
@@ -73,23 +72,34 @@ static rt_uint8_t core_set_scale(rt_uint8_t core_id, rt_uint8_t scale)
 
 static rt_uint16_t core_current_freq(rt_uint8_t core_id)
 {
-	return pll_to_freq(&pll_levels[current_pll_level]) / 8 * (core_current_scale(core_id) + 1);
+	return pll_to_freq(&pll_levels[current_pll_level]) * (current_core_scale[core_id] + 1) / 8;
 }
 
 rt_err_t miku_dvfs_fast_act(void)
 {
 	int i, j;
-	for(i = 0; i < NUM_CORE; i++) {
-		rt_uint16_t target_scale = target_shadow_freq[i] * 8 / pll_to_freq(&pll_levels[current_pll_level]);
+	rt_uint32_t time = time_stamp_ms();
+	rt_uint32_t irq_level;
+	irq_level = rt_hw_interrupt_disable();
 
-		if(target_scale > pll_levels[current_pll_level].highest_scale)
+	for(i = 0; i < NUM_CORE; i++) {
+		rt_uint32_t target_scale = ((target_shadow_freq[i] * 80 / pll_to_freq(&pll_levels[current_pll_level]) + 5) / 10) - 1;
+
+		if (target_scale >= current_core_scale[i])
+			core_scale_last_bump[i] = time;
+		else if ((time - core_scale_last_bump[i]) < core_scale_min)
+			target_scale = core_scale_last_bump[i];
+
+
+		if (target_scale > pll_levels[current_pll_level].highest_scale)
 			target_scale = pll_levels[current_pll_level].highest_scale;
 		
-		if(target_scale < pll_levels[current_pll_level].lowest_scale)
+		if (target_scale < pll_levels[current_pll_level].lowest_scale)
 			target_scale = pll_levels[current_pll_level].lowest_scale;
 
 		core_set_scale(i, target_scale);
 	}
+	rt_hw_interrupt_enable(irq_level);
 
 	return RT_EOK;
 }
@@ -98,6 +108,8 @@ rt_err_t miku_judge_dvfs(void)
 {
 	rt_uint16_t highest_freq = 0;
 	rt_uint8_t wanted_level = 0;
+	rt_uint32_t time = time_stamp_ms();
+	rt_uint32_t irq_level;
 	int i;
 
 	for(i = 0; i < NUM_CORE; i++) {
@@ -118,20 +130,28 @@ rt_err_t miku_judge_dvfs(void)
 		}
 	}
 
-	/* FIXME: Add time checks So, do we need real action? */
-	if (wanted_level != current_pll_level) {
-	}
+	if (wanted_level >= current_pll_level && current_pll_level != 0)
+		last_bump_up = time;
+
+	if ((time - last_bump_up) < pll_levels[current_pll_level].min_time
+		&& wanted_level < target_pll_level)
+		return RT_EOK;
+
+	irq_level = rt_hw_interrupt_disable();
 
 	target_pll_level = wanted_level;
 	target_vid = pll_levels[wanted_level].vid;
+
+	rt_hw_interrupt_enable(irq_level);
+
+	return RT_EOK;
 }
 
 rt_err_t miku_dvfs_action(void)
 {
-	struct pll_level *action_level = &pll_levels[target_pll_level];
-	rt_uint32_t level;
+	rt_uint32_t irq_level;
 
-	level = rt_hw_interrupt_disable();
+	irq_level = rt_hw_interrupt_disable();
 
 	/* Bump UP: VID First */
 	if (current_vid < target_vid) {
@@ -140,10 +160,16 @@ rt_err_t miku_dvfs_action(void)
 	}
 
 	if (current_pll_level != target_pll_level) {
-		MIKU_DBG("DVFS ACT: REFC: %d, LOOPC: %d, DIV: %d", action_level->refc, action_level->loopc, action_level->div);
+		struct pll_level *action_level = &pll_levels[target_pll_level];
+
+		MIKU_DBG("DVFS ACT: Level: %u\n", target_pll_level);
 		ht_scale_sel(action_level->ht_scale);
 		node_scale_sel(action_level->node_scale);
-		main_pll_sel(action_level->refc, action_level->loopc, action_level->div);
+
+		if (pll_get_div() != action_level->div || pll_get_loopc() != action_level->loopc || pll_get_refc() != action_level->refc) {
+			main_pll_sel(action_level->refc, action_level->loopc, action_level->div);
+			MIKU_DBG("DVFS PLL: REFC: %u, LOOPC: %u, DIV: %u\n", action_level->refc, action_level->loopc, action_level->div);
+		}
 		current_pll_level = target_pll_level;
 		stable_scale_sel(action_level->stable_scale);
 		/* Resel Scale */
@@ -156,7 +182,7 @@ rt_err_t miku_dvfs_action(void)
 		current_vid = target_vid;
 	}
 
-	rt_hw_interrupt_enable(level);
+	rt_hw_interrupt_enable(irq_level);
 
 }
 
@@ -187,7 +213,7 @@ rt_uint8_t miku_get_freq_info(struct smc_message *msg)
 			return MIKU_ECMDFAIL;
 
 		freq = shadow_level_freq[lvl];
-		MIKU_DBG("DVFS: Get Level %u, FREQ: %u\n", lvl, freq);
+//		MIKU_DBG("DVFS: Get Level %u, FREQ: %u\n", lvl, freq);
 		arg->info = freq;
 	} else
 		return MIKU_ECMDFAIL;
@@ -214,7 +240,7 @@ rt_uint8_t miku_set_cpu_level(struct smc_message *msg)
 		if ((1 << i) & arg->cpumask) {
 			uint16_t freq = shadow_level_freq[arg->level];
 			target_shadow_freq[i] = freq;
-			MIKU_DBG("Setting Core %d, Shadow Freq: %d\n", i, freq);
+//			MIKU_DBG("Setting Core %u, Shadow Freq: %u, Level %u\n", i, freq, arg->level);
 		}
 	}
 
@@ -235,8 +261,15 @@ rt_err_t miku_enable_dvfs(void)
 rt_err_t miku_dvfs_init(void)
 {
 	int i;
-	for (i = 0; i < NUM_CORE; i++)
+	rt_uint32_t time = time_stamp_ms();
+
+	for (i = 0; i < NUM_CORE; i++) {
 		target_shadow_freq[i] = BASEFREQ;
+		current_core_scale[i] = 7;
+		core_scale_last_bump[i] = time;
+	}
 
 	current_pll_level = 1;
+	current_vid = 1250;
+	last_bump_up = time;
 }

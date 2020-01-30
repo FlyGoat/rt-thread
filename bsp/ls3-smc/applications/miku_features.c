@@ -7,7 +7,7 @@ static rt_uint32_t enabled_feature[MIKU_FEATURE_SET_END];
 
 rt_uint8_t miku_get_version(struct smc_message *msg)
 {
-	rt_kprintf("miku_get_version\n");
+	MIKU_DBG("miku_get_version\n");
 	msg->arg = MIKU_CURRENT_VERSION;
 	return MIKU_EOK;
 }
