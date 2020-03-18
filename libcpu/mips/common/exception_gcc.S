@@ -8,6 +8,12 @@
  * 2019-12-04     Jiaxun Yang  Initial version
  */
 
+#ifndef __ASSEMBLY__
+#define __ASSEMBLY__
+#endif
+
+#include <mips.h>
+
     .section ".exc_vectors", "ax"
     .extern tlb_refill_handler
     .extern cache_error_handler
@@ -45,15 +51,15 @@ irq_exception:
     /* general exception handler */
 _general_exception_handler:
     .set	noreorder
-    la	$k0, mips_irq_handle
-    jr	$k0
+    PTR_LA	k0, mips_irq_handle
+    jr	k0
     nop
     .set	reorder
 
     /* interrupt handler */
 _irq_handler:
     .set	noreorder
-    la	$k0, mips_irq_handle
-    jr	$k0
+    PTR_LA	k0, mips_irq_handle
+    jr	k0
     nop
     .set	reorder

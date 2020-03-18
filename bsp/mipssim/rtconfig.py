@@ -17,7 +17,7 @@ if os.getenv('RTT_CC'):
 
 if  CROSS_TOOL == 'gcc':
 	PLATFORM    = 'gcc'
-	EXEC_PATH   = "/opt/mips-2016.05/bin"
+	EXEC_PATH   = "/data/mips-2016.05/bin"
 #	EXEC_PATH   = r'D:\mgc\embedded\codebench\bin'
 else:
     print('================ERROR===========================')
@@ -41,10 +41,10 @@ OBJDUMP = PREFIX + 'objdump'
 OBJCPY = PREFIX + 'objcopy'
 READELF = PREFIX + 'readelf'
 
-DEVICE = ' -mips32r2 -msoft-float -mfp32'
-CFLAGS = DEVICE + ' -EL -G0 -mno-abicalls -fno-pic -fno-builtin -fno-exceptions -ffunction-sections -fomit-frame-pointer'
-AFLAGS = ' -c' + DEVICE + ' -EL -fno-pic -fno-builtin -mno-abicalls -x assembler-with-cpp'
-LFLAGS = DEVICE + ' -nostartfiles -EL -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler -T mipssim_ram.lds'
+DEVICE = ' -march=mips64r2 -mabi=64 -EL'
+CFLAGS = DEVICE + ' -G0 -mno-abicalls -fno-pic -fno-builtin -fno-exceptions -ffunction-sections -fomit-frame-pointer'
+AFLAGS = ' -c' + DEVICE + ' -fno-pic -fno-builtin -mno-abicalls -x assembler-with-cpp'
+LFLAGS = DEVICE + ' -nostartfiles -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler -T mipssim_ram.lds'
 CXXFLAGS = CFLAGS
 
 CPATH = ''

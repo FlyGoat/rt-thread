@@ -17,6 +17,11 @@
 #define REG_FP	30
 #define REG_RA	31
 
+#if _MIPS_SIM == _ABIO32
+
+/*
+ * Symbolic register names for 32 bit ABI
+ */
 #define zero	$0	/* wired zero */
 #define AT	$1	/* assembler temp  - uppercase because of ".set at" */
 #define v0	$2	/* return value */
@@ -55,6 +60,49 @@
 #define fp	$30	/* frame pointer */
 #define s8	$30	/* same like fp! */
 #define ra	$31	/* return address */
+
+#elif _MIPS_SIM == _ABI64
+
+#define zero	$0	/* wired zero */
+#define AT	$at	/* assembler temp - uppercase because of ".set at" */
+#define v0	$2	/* return value - caller saved */
+#define v1	$3
+#define a0	$4	/* argument registers */
+#define a1	$5
+#define a2	$6
+#define a3	$7
+#define a4	$8	/* arg reg 64 bit; caller saved in 32 bit */
+#define ta0	$8
+#define a5	$9
+#define ta1	$9
+#define a6	$10
+#define ta2	$10
+#define a7	$11
+#define ta3	$11
+#define t0	$12	/* caller saved */
+#define t1	$13
+#define t2	$14
+#define t3	$15
+#define s0	$16	/* callee saved */
+#define s1	$17
+#define s2	$18
+#define s3	$19
+#define s4	$20
+#define s5	$21
+#define s6	$22
+#define s7	$23
+#define t8	$24	/* caller saved */
+#define t9	$25	/* callee address for PIC/temp */
+#define jp	$25	/* PIC jump register */
+#define k0	$26	/* kernel temporary */
+#define k1	$27
+#define gp	$28	/* global pointer - caller saved for PIC */
+#define sp	$29	/* stack pointer */
+#define fp	$30	/* frame pointer */
+#define s8	$30	/* callee saved */
+#define ra	$31	/* return address */
+
+#endif
 
 #define fv0	$f0	 /* return value */
 #define fv0f	$f1
@@ -993,7 +1041,7 @@ do {									\
     __asm__ __volatile__(                                   \
     ".set\tpush\n\t"					\
     ".set\treorder\n\t"					\
-        "cfc1\t%0,"STR(source)"\n\t"                            \
+    "cfc1\t%0,"STR(source)"\n\t"                            \
     ".set\tpop"						\
         : "=r" (__res));                                        \
         __res;})
@@ -1001,7 +1049,7 @@ do {									\
 #define write_32bit_cp1_register(register,value)                \
         __asm__ __volatile__(                                   \
         "ctc1\t%0,"STR(register)"\n\t"				\
-    "nop"							\
+        "nop"							\
         : : "r" (value));
 
 /* TLB operations. */

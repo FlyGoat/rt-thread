@@ -11,6 +11,8 @@
 #ifndef _MIPS_ADDRSPACE_H_
 #define _MIPS_ADDRSPACE_H_
 
+#include <asm.h>
+
 
 /*
  *  Configure language
@@ -24,7 +26,7 @@
 #define _ATYPE_		__PTRDIFF_TYPE__
 #define _ATYPE32_	int
 #define _ATYPE64_	__s64
-#ifdef CONFIG_64BIT
+#if (LONGSIZE == 8)
 #define _CONST64_(x)	x ## L
 #else
 #define _CONST64_(x)	x ## LL
@@ -54,7 +56,7 @@
 #define XPHYSADDR(a)		((_ACAST64_(a)) &			\
 				 _CONST64_(0x000000ffffffffff))
 
-#ifdef CONFIG_64BIT
+#if (LONGSIZE == 8)
 
 /*
  * Memory segments (64bit kernel mode addresses)
@@ -70,10 +72,20 @@
 #define CKSSEG			_CONST64_(0xffffffffc0000000)
 #define CKSEG3			_CONST64_(0xffffffffe0000000)
 
+#define KSEG0BASE			CKSEG0
+#define KSEG1BASE			CKSEG1
+#define KSEG2BASE			CKSEG2
+#define KSEG3BASE			CKSEG3
+
 #define CKSEG0ADDR(a)		(CPHYSADDR(a) | CKSEG0)
 #define CKSEG1ADDR(a)		(CPHYSADDR(a) | CKSEG1)
 #define CKSEG2ADDR(a)		(CPHYSADDR(a) | CKSEG2)
 #define CKSEG3ADDR(a)		(CPHYSADDR(a) | CKSEG3)
+
+#define KSEG0ADDR(a)		CKSEG0ADDR(a)
+#define KSEG1ADDR(a)		CKSEG1ADDR(a)
+#define KSEG2ADDR(a)		CKSEG2ADDR(a)
+#define KSEG3ADDR(a)		CKSEG3ADDR(a)
 
 #else
 

@@ -1,8 +1,14 @@
 menu "RT-Thread MIPS CPU"
 
+    config RT_CPU_64BIT
+        bool "64bit Processor"
+        default n
+        help
+            Processor is 64bit.
+
     config RT_USING_FPU
         bool "Using Float Point Unit"
-        default n
+        default n if !RT_CPU_64BIT
         help
             Using Float Point Unit in code.
 

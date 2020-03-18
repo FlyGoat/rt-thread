@@ -27,7 +27,7 @@
 
 #ifndef __ASSEMBLER__
 #include <rtdef.h>
-#include <mips_cfg.h>
+#include <mips_addrspace.h>
 
 /*
  * Cache Operations available on all MIPS processors with R4000-style caches

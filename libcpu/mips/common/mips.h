@@ -19,5 +19,6 @@
 #include "mips_addrspace.h"
 #include "mips_cache.h"
 #include "exception.h"
+#include "mips_fpu.h"
 
 #endif /* _COMMON_MIPS_H_ */

@@ -16,6 +16,7 @@
 
 #define FP_REG_SIZE 8
 #define NUM_FPU_REGS 16
+#define HI_LO_SIZE  4
 
 #ifndef __ASSEMBLY__
 #include <rtthread.h>
@@ -27,20 +28,21 @@ struct mips_fpu_struct {
 };
 
 struct pt_regs {
+#if (_MIPS_SIM == _ABIO32)
     /* Only O32 Need This! */
     /* Pad bytes for argument save space on the stack. */
     rt_uint32_t pad0[8];
-
+#endif
     /* Saved main processor registers. */
-    rt_uint32_t regs[32];
+    unsigned long regs[32];
 
     /* Saved special registers. */
-    rt_uint32_t cp0_status;
+    unsigned long cp0_status;
     rt_uint32_t hi;
     rt_uint32_t lo;
-    rt_uint32_t cp0_badvaddr;
-    rt_uint32_t cp0_cause;
-    rt_uint32_t cp0_epc;
+    unsigned long cp0_badvaddr;
+    unsigned long cp0_cause;
+    unsigned long cp0_epc;
 
 #ifdef RT_USING_FPU
     /* FPU Registers */
@@ -90,8 +92,8 @@ struct pt_regs {
  */
 #define PT_STATUS	((PT_R31) + LONGSIZE)	/* 32 */
 #define PT_HI		((PT_STATUS) + LONGSIZE)	/* 33 */
-#define PT_LO		((PT_HI) + LONGSIZE)	/* 34 */
-#define PT_BADVADDR	((PT_LO) + LONGSIZE)	/* 35 */
+#define PT_LO		((PT_HI) + HI_LO_SIZE)	/* 34 */
+#define PT_BADVADDR	((PT_LO) + HI_LO_SIZE)	/* 35 */
 #define PT_CAUSE	((PT_BADVADDR) + LONGSIZE)	/* 36 */
 #define PT_EPC		((PT_CAUSE) + LONGSIZE)	/* 37 */
 
@@ -115,9 +117,9 @@ struct pt_regs {
 #define PT_FPU_R28              ((PT_FPU_R26) + FP_REG_SIZE)
 #define PT_FPU_R30              ((PT_FPU_R28) + FP_REG_SIZE)
 #define PT_FPU_FCSR31           ((PT_FPU_R30) + FP_REG_SIZE)
-#define PT_FPU_PAD0             ((PT_FPU_FCSR31) + LONGSIZE)
+#define PT_FPU_PAD0             ((PT_FPU_FCSR31) + 4)
 
-#define PT_FPU_END     	        ((PT_FPU_PAD0) + LONGSIZE)
+#define PT_FPU_END     	        ((PT_FPU_PAD0) + 4)
 #define PT_SIZE			PT_FPU_END
 #else
 #define PT_SIZE			PT_REG_END

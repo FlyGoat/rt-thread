@@ -18,7 +18,7 @@
  * init hardware FPU
  */
 #ifdef RT_USING_FPU
-inline void rt_hw_fpu_init(void)
+static inline void rt_hw_fpu_init(void)
 {
     rt_uint32_t c0_status = 0;
     rt_uint32_t c1_status = 0;
@@ -29,16 +29,16 @@ inline void rt_hw_fpu_init(void)
     write_c0_status(c0_status);
 
     /* FCSR Configs */
-    c1_status = read_c1_status();
+//    c1_status = read_c1_status();
     c1_status |= (FPU_CSR_FS | FPU_CSR_FO | FPU_CSR_FN);    /* Set FS, FO, FN */
     c1_status &= ~(FPU_CSR_ALL_E);                          /* Disable exception */
     c1_status = (c1_status & (~FPU_CSR_RM)) | FPU_CSR_RN;   /* Set RN */
-    write_c1_status(c1_status);
+//    write_c1_status(c1_status);
 
     return ;
 }
 #else
-    inline void rt_hw_fpu_init(void){} /* Do nothing */
+static inline void rt_hw_fpu_init(void){} /* Do nothing */
 #endif
 
 #endif

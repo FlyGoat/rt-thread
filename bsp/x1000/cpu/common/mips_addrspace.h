@@ -19,7 +19,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2016Äê9ÔÂ12ÈÕ     Urey         the first version
+ * 2016ï¿½ï¿½9ï¿½ï¿½12ï¿½ï¿½     Urey         the first version
  */
 
 #ifndef _MIPS_ADDRSPACE_H_
@@ -108,11 +108,11 @@
  * Memory segments (32bit kernel mode addresses)
  * These are the traditional names used in the 32-bit universe.
  */
-//#define KUSEGBASE			0x00000000
-//#define KSEG0BASE			0x80000000
-//#define KSEG1BASE			0xa0000000
-//#define KSEG2BASE			0xc0000000
-//#define KSEG3BASE			0xe0000000
+#define KUSEGBASE			0x00000000
+#define KSEG0BASE			0x80000000
+#define KSEG1BASE			0xa0000000
+#define KSEG2BASE			0xc0000000
+#define KSEG3BASE			0xe0000000
 
 #define CKUSEG			0x00000000
 #define CKSEG0			0x80000000
