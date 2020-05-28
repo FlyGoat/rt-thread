@@ -3,9 +3,16 @@
 
 #include <mips.h>
 
-#define UART0_BASE_ADDR 0xbfe00000
-#define UART0_OFF   0x0
-#define UART0_BASE CKSEG1ADDR(UART0_BASE_ADDR + UART0_OFF)
+#define APB_BASE    TO_UNCAC(0x1fe00000)
+
+#define UARTx_BASE(x)    (APB_BASE | (0x0 << 12) | (x << 8))
+#define CANx_BASE(x)    (APB_BASE | (0x0 << 12) | ((x - 0xc) << 8))
+
+#define LIOINTC0_BASE    TO_UNCAC(0x1fe11400)
+#define CORE0_INTISR0    TO_UNCAC(0x1fe11040)
+
+#define LIOINTC1_BASE    TO_UNCAC(0x1fe11440)
+#define CORE0_INTISR1    TO_UNCAC(0x1fe11048)
 
 void rt_hw_timer_handler(void);
 void rt_hw_uart_init(void);
