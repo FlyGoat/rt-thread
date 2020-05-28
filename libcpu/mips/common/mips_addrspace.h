@@ -112,6 +112,9 @@
 #define KDM_TO_PHYS(x) (_ACAST64_(x) & TO_PHYS_MASK)
 #define PHYS_TO_K0(x) (_ACAST64_(x) | CAC_BASE)
 
+#define TO_CAC(p) PHYS_TO_XKSEG_CACHED(p)
+#define TO_UNCAC(p) PHYS_TO_XKSEG_UNCACHED(p)
+
 #else
 
 #define CKSEG0ADDR(a) (CPHYSADDR(a) | KSEG0BASE)
@@ -142,6 +145,10 @@
 #define KSEG1BASE 0xa0000000
 #define KSEG2BASE 0xc0000000
 #define KSEG3BASE 0xe0000000
+
+/* KSEG0 is always cached for RT-Thread */
+#define TO_CAC(p) CKSEG0(p)
+#define TO_UNCAC(p) CKSEG1(p)
 
 #endif
 
