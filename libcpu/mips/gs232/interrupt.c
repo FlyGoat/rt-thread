@@ -18,15 +18,14 @@
 #include <rthw.h>
 #include "gs232.h"
 
-
-#define MAX_INTR            (GS232_NR_IRQS)
+#define MAX_INTR (GS232_NR_IRQS)
 
 static struct rt_irq_desc irq_handle_table[MAX_INTR];
 void rt_interrupt_dispatch(void *ptreg);
 void rt_hw_timer_handler();
 
-static struct gs232_intc_regs volatile *gs232_hw0_icregs
-= (struct gs232_intc_regs volatile *)(INTC_BASE);
+static struct gs232_intc_regs volatile *gs232_hw0_icregs =
+        (struct gs232_intc_regs volatile *)(INTC_BASE);
 
 /**
  * @addtogroup Loongson GS232
@@ -48,21 +47,21 @@ void rt_hw_interrupt_init(void)
     rt_int32_t i;
     rt_uint32_t c0_status = 0;
 
-    for (i=0; i < GS232_INTC_CELLS; i++)
+    for (i = 0; i < GS232_INTC_CELLS; i++)
     {
         /* Disable */
-        (gs232_hw0_icregs+i)->int_en = 0x0;
+        (gs232_hw0_icregs + i)->int_en = 0x0;
         /* Trigger active low */
-        (gs232_hw0_icregs+i)->int_pol = -1;	   /* Must be done here */
+        (gs232_hw0_icregs + i)->int_pol = -1; /* Must be done here */
         /* Make all interrupts level triggered */
-        (gs232_hw0_icregs+i)->int_edge = 0x00000000;
+        (gs232_hw0_icregs + i)->int_edge = 0x00000000;
         /* Mask all interrupts */
-        (gs232_hw0_icregs+i)->int_clr = 0xffffffff;
+        (gs232_hw0_icregs + i)->int_clr = 0xffffffff;
         mips_unmask_cpu_irq(i + 2);
     }
 
     rt_memset(irq_handle_table, 0x00, sizeof(irq_handle_table));
-    for (idx = 0; idx < MAX_INTR; idx ++)
+    for (idx = 0; idx < MAX_INTR; idx++)
     {
         irq_handle_table[idx].handler = rt_hw_interrupt_handler;
     }
@@ -75,7 +74,7 @@ void rt_hw_interrupt_init(void)
 void rt_hw_interrupt_mask(int vector)
 {
     /* mask interrupt */
-    (gs232_hw0_icregs+(vector>>5))->int_en &= ~(1 << (vector&0x1f));
+    (gs232_hw0_icregs + (vector >> 5))->int_en &= ~(1 << (vector & 0x1f));
 }
 
 /**
@@ -84,7 +83,7 @@ void rt_hw_interrupt_mask(int vector)
  */
 void rt_hw_interrupt_umask(int vector)
 {
-    (gs232_hw0_icregs+(vector>>5))->int_en |= (1 << (vector&0x1f));
+    (gs232_hw0_icregs + (vector >> 5))->int_en |= (1 << (vector & 0x1f));
 }
 
 /**
@@ -112,7 +111,6 @@ rt_isr_handler_t rt_hw_interrupt_install(int vector, rt_isr_handler_t handler,
     return old_handler;
 }
 
-
 /**
  * ִ Call ISR
  * @IRQn ID of IRQ
@@ -123,7 +121,7 @@ void gs232_do_IRQ(int IRQn)
     void *param;
 
     irq_func = irq_handle_table[IRQn].handler;
-    param    = irq_handle_table[IRQn].param;
+    param = irq_handle_table[IRQn].param;
 
     irq_func(IRQn, param);
 
@@ -131,32 +129,32 @@ void gs232_do_IRQ(int IRQn)
     irq_handle_table[IRQn].counter++;
 #endif
 
-    return ;
+    return;
 }
-
 
 void rt_do_mips_cpu_irq(rt_uint32_t ip)
 {
     rt_uint32_t intstatus, irq, n;
 
-    if (ip == 7) {
+    if (ip == 7)
+    {
         rt_hw_timer_handler();
-    } else {
+    }
+    else
+    {
         n = ip - 2;
         /* Receive interrupt signal, compute the irq */
-        intstatus = (gs232_hw0_icregs+n)->int_isr & (gs232_hw0_icregs+n)->int_en;
+        intstatus = (gs232_hw0_icregs + n)->int_isr &
+                    (gs232_hw0_icregs + n)->int_en;
         if (0 == intstatus)
-            return ;
+            return;
 
         irq = __rt_ffs(intstatus) - 1;
-        gs232_do_IRQ((n<<5) + irq);
+        gs232_do_IRQ((n << 5) + irq);
 
         /* ack interrupt */
-        (gs232_hw0_icregs+n)->int_clr |= (1 << irq);
+        (gs232_hw0_icregs + n)->int_clr |= (1 << irq);
     }
 }
 
-
 /*@}*/
-
-

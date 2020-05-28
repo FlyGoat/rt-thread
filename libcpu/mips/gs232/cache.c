@@ -15,10 +15,10 @@
 #include <rtthread.h>
 #include <mips.h>
 
-#define K0BASE			0x80000000
-#define PRID_LS1C		0x4220
+#define K0BASE 0x80000000
+#define PRID_LS1C 0x4220
 
-extern void Clear_TagLo (void);
+extern void Clear_TagLo(void);
 extern void Invalidate_Icache_Ls1c(unsigned int);
 extern void Invalidate_Dcache_ClearTag_Ls1c(unsigned int);
 extern void Invalidate_Dcache_Fill_Ls1c(unsigned int);
@@ -27,20 +27,20 @@ extern void enable_cpu_cache(void);
 
 typedef struct cacheinfo_t
 {
-    unsigned int	icache_size;
-    unsigned int	dcache_size;
-    unsigned int	icacheline_size;
-    unsigned int	dcacheline_size;
-} cacheinfo_t ;
+    unsigned int icache_size;
+    unsigned int dcache_size;
+    unsigned int icacheline_size;
+    unsigned int dcacheline_size;
+} cacheinfo_t;
 
 typedef struct cacheop_t
 {
-    void (*Clear_TagLo) (void);
-    void (*Invalidate_Icache) (unsigned int);
-    void (*Invalidate_Dcache_Fill) (unsigned int);
-    void (*Invalidate_Dcache_ClearTag) (unsigned int);
+    void (*Clear_TagLo)(void);
+    void (*Invalidate_Icache)(unsigned int);
+    void (*Invalidate_Dcache_Fill)(unsigned int);
+    void (*Invalidate_Dcache_ClearTag)(unsigned int);
     void (*Init_Cache)(void);
-} cacheop_t ;
+} cacheop_t;
 
 static cacheop_t cacheop, *pcacheop;
 static cacheinfo_t cacheinfo, *pcacheinfo;
@@ -97,15 +97,17 @@ void probe_cache(void)
     dcache_ways = 1 + ((config1 >> 7) & 7);
     dcache_size = dcache_sets * dcache_ways * dcache_line_size;
 
-    rt_kprintf("DCache %2dkb, linesize %d bytes.\n", dcache_size >> 10, dcache_line_size);
-    rt_kprintf("ICache %2dkb, linesize %d bytes.\n", icache_size >> 10, icache_line_size);
+    rt_kprintf("DCache %2dkb, linesize %d bytes.\n", dcache_size >> 10,
+               dcache_line_size);
+    rt_kprintf("ICache %2dkb, linesize %d bytes.\n", icache_size >> 10,
+               icache_line_size);
 
     pcacheinfo->icache_size = icache_size;
     pcacheinfo->dcache_size = dcache_size;
     pcacheinfo->icacheline_size = icache_line_size;
     pcacheinfo->dcacheline_size = dcache_line_size;
 
-    return ;
+    return;
 }
 
 void invalidate_writeback_dcache_all(void)
@@ -115,7 +117,7 @@ void invalidate_writeback_dcache_all(void)
 
     while (start < end)
     {
-        Writeback_Invalidate_Dcache(start);  //hit writeback invalidate
+        Writeback_Invalidate_Dcache(start); //hit writeback invalidate
         start += pcacheinfo->dcacheline_size;
     }
 }
@@ -124,10 +126,12 @@ void invalidate_writeback_dcache(unsigned long addr, int size)
 {
     unsigned long start, end;
 
-    start = (addr +pcacheinfo->dcacheline_size -1) & (- pcacheinfo->dcacheline_size);
-    end = (end + size + pcacheinfo->dcacheline_size -1) & ( -pcacheinfo->dcacheline_size);
+    start = (addr + pcacheinfo->dcacheline_size - 1) &
+            (-pcacheinfo->dcacheline_size);
+    end = (end + size + pcacheinfo->dcacheline_size - 1) &
+          (-pcacheinfo->dcacheline_size);
 
-    while (start <end)
+    while (start < end)
     {
         Writeback_Invalidate_Dcache(start);
         start += pcacheinfo->dcacheline_size;
@@ -149,8 +153,8 @@ void invalidate_icache_all(void)
 void invalidate_dcache_all(void)
 {
     unsigned int start = K0BASE;
-    unsigned int end  = (start + pcacheinfo->dcache_size);
-    while (start <end)
+    unsigned int end = (start + pcacheinfo->dcache_size);
+    while (start < end)
     {
         Invalidate_Dcache_Fill_Ls1c(start);
         start += pcacheinfo->icacheline_size;
@@ -168,7 +172,6 @@ void init_dcache(void)
         pcacheop->Invalidate_Dcache_ClearTag(start);
         start += pcacheinfo->dcacheline_size;
     }
-
 }
 
 void rt_hw_cache_init(void)
@@ -201,21 +204,21 @@ void rt_hw_cache_init(void)
      */
     start = K0BASE;
     end = (start + pcacheinfo->dcache_size);
-    while(start < end)
+    while (start < end)
     {
         pcacheop->Invalidate_Dcache_ClearTag(start);
         start += pcacheinfo->dcacheline_size;
     }
 
     start = K0BASE;
-    while(start < end)
+    while (start < end)
     {
-        pcacheop->Invalidate_Dcache_Fill(start);  //index invalidate dcache
+        pcacheop->Invalidate_Dcache_Fill(start); //index invalidate dcache
         start += pcacheinfo->dcacheline_size;
     }
 
     start = K0BASE;
-    while(start < end)
+    while (start < end)
     {
         pcacheop->Invalidate_Dcache_ClearTag(start);
         start += pcacheinfo->dcacheline_size;
@@ -225,7 +228,5 @@ void rt_hw_cache_init(void)
     enable_cpu_cache();
     rt_kprintf("enable cpu cache done\n");
 
-    return ;
+    return;
 }
-
-

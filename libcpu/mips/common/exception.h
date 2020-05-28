@@ -15,7 +15,7 @@
 
 #ifndef __ASSEMBLY__
 
-typedef void (* exception_func_t)(struct pt_regs *regs);
+typedef void (*exception_func_t)(struct pt_regs *regs);
 
 extern int rt_hw_exception_init(void);
 extern exception_func_t sys_exception_handlers[];

@@ -30,15 +30,17 @@ rt_inline void rt_hw_fpu_init(void)
 
     /* FCSR Configs */
     c1_status = read_c1_status();
-    c1_status |= (FPU_CSR_FS | FPU_CSR_FO | FPU_CSR_FN);    /* Set FS, FO, FN */
-    c1_status &= ~(FPU_CSR_ALL_E);                          /* Disable exception */
-    c1_status = (c1_status & (~FPU_CSR_RM)) | FPU_CSR_RN;   /* Set RN */
+    c1_status |= (FPU_CSR_FS | FPU_CSR_FO | FPU_CSR_FN); /* Set FS, FO, FN */
+    c1_status &= ~(FPU_CSR_ALL_E); /* Disable exception */
+    c1_status = (c1_status & (~FPU_CSR_RM)) | FPU_CSR_RN; /* Set RN */
     write_c1_status(c1_status);
 
-    return ;
+    return;
 }
 #else
-    rt_inline void rt_hw_fpu_init(void){} /* Do nothing */
+rt_inline void rt_hw_fpu_init(void)
+{
+} /* Do nothing */
 #endif
 
 #endif
